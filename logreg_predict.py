@@ -27,6 +27,8 @@ def predict(
         [weights[target_class] for target_class in label_code]
     ).T  # the list comprehension puts each class as a row, so we need to transpose
 
+    print(weights_matrix.shape, features_biased.shape)
+
     logits: NDArray[np.float64] = np.matmul(features_biased, weights_matrix)
     probabilities: NDArray[np.float64] = sigmoid(logits)
     predicted_classes: pd.Index = label_code[np.argmax(probabilities, axis=1)]
@@ -48,11 +50,12 @@ def load_csv_to_numpy(
 ) -> tuple[NDArray[np.float64], NDArray[np.integer]]:
     data: pd.DataFrame = pd.read_csv(file_path)
     data = data.drop(
-        labels=["First Name", "Last Name", "Birthday", "Best Hand"], axis=1
+        labels=["Hogwarts House", "First Name", "Last Name", "Birthday", "Best Hand"],
+        axis=1,
     )
     data = cast(pd.DataFrame, data.apply(pd.to_numeric, errors="coerce").fillna(0))
     features: NDArray[np.float64] = data.drop(labels=["Index"], axis=1).values
-    indices: NDArray[np.integer] = data["Index"].values.astype(np.integer)
+    indices: NDArray[np.integer] = data["Index"].values.astype(np.int16)
     return features, indices
 
 
