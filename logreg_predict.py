@@ -47,16 +47,16 @@ def normalize_features(features: NDArray[np.float64]) -> NDArray[np.float64]:
 
 def load_csv_to_numpy(
     file_path: Path,
-) -> tuple[NDArray[np.float64], NDArray[np.integer]]:
+) -> NDArray[np.float64]:
     data: pd.DataFrame = pd.read_csv(file_path)
     data = data.drop(
         labels=["Hogwarts House", "First Name", "Last Name", "Birthday", "Best Hand"],
         axis=1,
     )
-    data = cast(pd.DataFrame, data.apply(pd.to_numeric, errors="coerce").fillna(0))
+    data = cast(pd.DataFrame, data.apply(pd.to_numeric, errors="coerce").dropna())
     features: NDArray[np.float64] = data.drop(labels=["Index"], axis=1).values
-    indices: NDArray[np.integer] = data["Index"].values.astype(np.int16)
-    return features, indices
+    # indices: NDArray[np.integer] = data["Index"].values.astype(np.int16)
+    return features
 
 
 def main() -> None:
@@ -75,9 +75,8 @@ def main() -> None:
     dataset_path = Path("data/dataset_test.csv")
     if not dataset_path.exists():
         raise FileNotFoundError(f"Dataset not found at {dataset_path}")
-    features: NDArray[np.float64]
-    indices: NDArray[np.integer]
-    features, indices = load_csv_to_numpy(dataset_path)
+    features: NDArray[np.float64] = load_csv_to_numpy(dataset_path)
+    indices: NDArray[np.int16] = np.arange(len(features), dtype=np.int16)
     logging.info("Dataset loaded successfully")
 
     features = normalize_features(features)

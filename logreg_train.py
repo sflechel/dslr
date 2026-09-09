@@ -25,7 +25,7 @@ def load_csv_to_numpy(
     raw_labels = data["Hogwarts House"].factorize()
     labels: NDArray[np.integer] = raw_labels[0]
     label_code: pd.Index = raw_labels[1]
-    data = cast(pd.DataFrame, data.apply(pd.to_numeric, errors="coerce").fillna(0))
+    data = cast(pd.DataFrame, data.apply(pd.to_numeric, errors="coerce").dropna())
     features: NDArray[np.float64] = data.drop(labels=["Hogwarts House"], axis=1).values
     return features, labels, label_code
 
