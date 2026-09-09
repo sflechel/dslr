@@ -84,6 +84,29 @@ def load_csv_to_numpy(
     return features
 
 
+def load_model_parameters(
+    weights_path: Path,
+) -> tuple[dict[Any, NDArray[np.float64]], pd.Index]:
+    model_weights = joblib.load(weights_path)
+    try:
+        model_weights = joblib.load(weights_path)
+    except Exception as e:
+        raise ValueError(f"Failed to parse model artifact at {weights_path}: {e}")
+    if not isinstance(model_weights, dict):
+        raise TypeError(
+            f"Invalid model artifact format. Expected a dictionary, got {type(model_weights).__name__}."
+        )
+
+    required_keys = {"weights", "label_code"}
+    missing_keys = required_keys - model_weights.keys()
+    if missing_keys:
+        raise KeyError(
+            f"Model artifact schema error: Missing expected keys -> {missing_keys}"
+        )
+
+    return model_weights["weights"], model_weights["label_code"]
+
+
 def main() -> None:
     if len(sys.argv) == 3:
         dataset_path = Path(sys.argv[1])
@@ -100,9 +123,9 @@ def main() -> None:
         raise FileNotFoundError(f"Dataset not found at {dataset_path}")
 
     logging.info("Loading weights...")
-    model_weights = joblib.load(weights_path)
-    weights: dict[Any, NDArray[np.float64]] = model_weights["weights"]
-    label_code: pd.Index = model_weights["label_code"]
+    weights: dict[Any, NDArray[np.float64]]
+    label_code: pd.Index
+    weights, label_code = load_model_parameters(weights_path)
     logging.info(f"Weights loaded successfully, using classes: {label_code.tolist()}")
 
     features: NDArray[np.float64] = load_csv_to_numpy(dataset_path)
