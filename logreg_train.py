@@ -138,6 +138,10 @@ def main() -> None:
     logging.info("Starting training")
     all_weights, all_histories = training(normalized_features, labels, label_code)
 
+    export_path = "logreg_weights.joblib"
+    joblib.dump({"weights": all_weights, "label_code": label_code}, export_path)
+    logging.info(f"Weights exported to {export_path}")
+
     plot_training_loss(all_histories)
 
 
