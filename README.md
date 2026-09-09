@@ -33,7 +33,7 @@ A robust, fully vectorized **One-vs-Rest (OvR) Logistic Regression** implementat
 Ensure you have Python 3.10+ installed. Install the required dependencies using pip:
 
 ```bash
-pip install numpy pandas scikit-learn joblib
+pip install -r requirements.txt
 ```
 
 ---
