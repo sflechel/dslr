@@ -82,8 +82,8 @@ def training(
         patience_counter: int = 0
 
         for i in range(max_iter):
-            z = np.matmul(features_biased, weights)
-            predictions = sigmoid(z)
+            z: NDArray[np.float64] = np.matmul(features_biased, weights)
+            predictions: NDArray[np.float64] = sigmoid(z)
             loss: float = compute_loss(binary_labels, predictions)
             history.append(loss)
             if best_loss - loss > tolerance:
