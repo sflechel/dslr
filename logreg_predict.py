@@ -53,14 +53,34 @@ def normalize_features(features: NDArray[np.float64]) -> NDArray[np.float64]:
 def load_csv_to_numpy(
     file_path: Path,
 ) -> NDArray[np.float64]:
-    data: pd.DataFrame = pd.read_csv(file_path)
-    data = data.drop(
-        labels=["Hogwarts House", "First Name", "Last Name", "Birthday", "Best Hand"],
-        axis=1,
-    )
+    try:
+        data: pd.DataFrame = pd.read_csv(file_path)
+    except Exception as _:
+        raise ValueError(f"Failed to parse csv file at {file_path}")
+
+    try:
+        data = data.drop(
+            labels=[
+                "Hogwarts House",
+                "First Name",
+                "Last Name",
+                "Birthday",
+                "Best Hand",
+            ],
+            axis=1,
+        )
+    except KeyError as _:
+        raise KeyError("Missing expected columns")
+
     data = cast(pd.DataFrame, data.apply(pd.to_numeric, errors="coerce").dropna())
-    features: NDArray[np.float64] = data.drop(labels=["Index"], axis=1).values
-    # indices: NDArray[np.integer] = data["Index"].values.astype(np.int16)
+    if data.empty:
+        raise ValueError("Dataset contains no values after cleaning")
+
+    try:
+        features: NDArray[np.float64] = data.drop(labels=["Index"], axis=1).values
+    except KeyError as _:
+        raise KeyError("Missing expected columns")
+
     return features
 
 
