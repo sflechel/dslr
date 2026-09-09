@@ -19,14 +19,27 @@ def load_csv_to_numpy(
     file_path: Path,
 ) -> tuple[NDArray[np.float64], NDArray[np.integer], pd.Index]:
     data: pd.DataFrame = pd.read_csv(file_path)
+
     data = data.drop(
-        labels=["Index", "First Name", "Last Name", "Birthday", "Best Hand"], axis=1
+        labels=["Index", "First Name", "Last Name", "Birthday", "Best Hand"],
+        axis=1,
     )
-    raw_labels = data["Hogwarts House"].factorize()
+
+    target = data["Hogwarts House"]
+    features_df = data.drop(labels=["Hogwarts House"], axis=1)
+
+    features_numeric = features_df.apply(pd.to_numeric, errors="coerce")
+    clean_data = pd.concat([features_numeric, target], axis=1).dropna()
+
+    features_clean = clean_data.drop(labels=["Hogwarts House"], axis=1)
+    target_clean = clean_data["Hogwarts House"]
+
+    raw_labels = target_clean.factorize()
     labels: NDArray[np.integer] = raw_labels[0]
     label_code: pd.Index = raw_labels[1]
-    data = cast(pd.DataFrame, data.apply(pd.to_numeric, errors="coerce").dropna())
-    features: NDArray[np.float64] = data.drop(labels=["Hogwarts House"], axis=1).values
+
+    features: NDArray[np.float64] = features_clean.values
+    print(features, labels, label_code)
     return features, labels, label_code
 
 

@@ -7,6 +7,12 @@ import pandas as pd
 from typing import Any
 from typing import cast
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+)
+
 
 def sigmoid(z: NDArray[np.float64]) -> NDArray[np.float64]:
     z_clipped: NDArray[np.float64] = np.clip(z, -500, 500)
@@ -26,8 +32,6 @@ def predict(
     weights_matrix: NDArray[np.float64] = np.array(
         [weights[target_class] for target_class in label_code]
     ).T  # the list comprehension puts each class as a row, so we need to transpose
-
-    print(weights_matrix.shape, features_biased.shape)
 
     logits: NDArray[np.float64] = np.matmul(features_biased, weights_matrix)
     probabilities: NDArray[np.float64] = sigmoid(logits)
@@ -84,7 +88,7 @@ def main() -> None:
 
     output_df = pd.DataFrame({"Index": indices, "Hogwarts House": predictions})
     output_df.to_csv("houses.csv", index=False)
-    print("Predictions successfully exported to houses.csv!")
+    logging.info("Predictions successfully exported to houses.csv")
 
 
 if __name__ == "__main__":
