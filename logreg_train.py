@@ -5,8 +5,8 @@ from pathlib import Path
 from numpy.typing import NDArray
 import logging
 import matplotlib.pyplot as plt
-from typing import cast
 import joblib
+import sys
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,7 +39,6 @@ def load_csv_to_numpy(
     label_code: pd.Index = raw_labels[1]
 
     features: NDArray[np.float64] = features_clean.values
-    print(features, labels, label_code)
     return features, labels, label_code
 
 
@@ -127,7 +126,7 @@ def plot_training_loss(loss_histories: dict[Any, list[float]]) -> None:
     for target_class, history in loss_histories.items():
         plt.plot(history, label=f"Class: {target_class}")
 
-    plt.title("Training Loss Over Iterations (One-vs-Rest)")
+    plt.title("Training Loss Over Iterations")
     plt.xlabel("Iteration")
     plt.ylabel("Binary Cross-Entropy Loss")
     plt.legend()
@@ -137,12 +136,20 @@ def plot_training_loss(loss_histories: dict[Any, list[float]]) -> None:
 
 
 def main() -> None:
+    if len(sys.argv) == 2:
+        dataset_path = Path(sys.argv[1])
+    else:
+        logging.error("Pass in training data csv as first and only argument")
+        exit(1)
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"Dataset not found at {dataset_path}")
+
     features: NDArray[np.float64]
     labels: NDArray[np.integer]
     label_code: pd.Index
 
     logging.info("Loading dataset...")
-    features, labels, label_code = load_csv_to_numpy(Path("data/dataset_train.csv"))
+    features, labels, label_code = load_csv_to_numpy(Path(dataset_path))
 
     normalized_features: NDArray[np.float64] = normalize_features(features)
 

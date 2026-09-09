@@ -6,6 +6,7 @@ from numpy.typing import NDArray
 import pandas as pd
 from typing import Any
 from typing import cast
+import sys
 
 logging.basicConfig(
     level=logging.INFO,
@@ -64,11 +65,19 @@ def load_csv_to_numpy(
 
 
 def main() -> None:
-    weights_path = Path("logreg_weights.joblib")
+    if len(sys.argv) == 3:
+        dataset_path = Path(sys.argv[1])
+        weights_path = Path(sys.argv[2])
+    else:
+        logging.error("Pass in dataset_train.csv as first and only argument")
+        exit(1)
+
     if not weights_path.exists():
         raise FileNotFoundError(
             f"Weights not found at {weights_path}. Run logreg_train first"
         )
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"Dataset not found at {dataset_path}")
 
     logging.info("Loading weights...")
     model_weights = joblib.load(weights_path)
@@ -76,9 +85,6 @@ def main() -> None:
     label_code: pd.Index = model_weights["label_code"]
     logging.info(f"Weights loaded successfully, using classes: {label_code.tolist()}")
 
-    dataset_path = Path("data/dataset_test.csv")
-    if not dataset_path.exists():
-        raise FileNotFoundError(f"Dataset not found at {dataset_path}")
     features: NDArray[np.float64] = load_csv_to_numpy(dataset_path)
     indices: NDArray[np.int16] = np.arange(len(features), dtype=np.int16)
     logging.info("Dataset loaded successfully")

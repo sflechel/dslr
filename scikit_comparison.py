@@ -10,7 +10,9 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import StandardScaler
 
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
 )
 
 
@@ -64,22 +66,16 @@ def main():
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.fit_transform(X_test)
 
-    logging.info("Training scikit-learn reference LogisticRegression (OvR)...")
+    logging.info("Training scikit-learn logistic regression")
     sk_model = OneVsRestClassifier(LogisticRegression()).fit(X_train_scaled, y_train)
     sk_model.fit(X_train_scaled, y_train)
 
     sk_predictions = sk_model.predict(X_test_scaled)
     sk_predictions = label_code[sk_predictions]
-    print(sk_predictions)
 
-    logging.info("Loading predictions from houses.csv...")
+    logging.info("Loading predictions from houses.csv")
     custom_df = pd.read_csv(houses_path)
-    if "Hogwarts House" not in custom_df.columns:
-        raise ValueError(
-            "houses.csv does not contain the expected 'Hogwarts House' column."
-        )
     custom_predictions = custom_df["Hogwarts House"].values
-    print(custom_predictions)
 
     if len(custom_predictions) != len(sk_predictions):
         logging.warning(
@@ -91,25 +87,7 @@ def main():
     match_count = np.sum(np.array([custom_predictions == sk_predictions]))
     match_percentage = (match_count / len(custom_predictions)) * 100
 
-    logging.info("=" * 50)
-    logging.info(f"Total evaluated samples: {len(custom_predictions)}")
-    logging.info(
-        f"Exact matches with Scikit-Learn: {match_count} / {len(custom_predictions)}"
-    )
     logging.info(f"Agreement Rate: {match_percentage:.2f}%")
-    logging.info("=" * 50)
-
-    # Optional: Save a diagnostic difference dataframe for inspection
-    comparison_df = pd.DataFrame(
-        {
-            "Index": custom_df["Index"][: len(custom_predictions)],
-            "Custom House": custom_predictions,
-            "Sklearn House": sk_predictions,
-            "Match": custom_predictions == sk_predictions,
-        }
-    )
-    comparison_df.to_csv("model_comparison_diff.csv", index=False)
-    logging.info("Detailed comparison saved to model_comparison_diff.csv")
 
 
 if __name__ == "__main__":
