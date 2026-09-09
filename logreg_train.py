@@ -6,6 +6,7 @@ from numpy.typing import NDArray
 import logging
 import matplotlib.pyplot as plt
 from typing import cast
+import joblib
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,7 +19,6 @@ def load_csv_to_numpy(
     file_path: Path,
 ) -> tuple[NDArray[np.float64], NDArray[np.integer], pd.Index]:
     data: pd.DataFrame = pd.read_csv(file_path)
-    logging.info(data.columns)
     data = data.drop(
         labels=["Index", "First Name", "Last Name", "Birthday", "Best Hand"], axis=1
     )
@@ -49,7 +49,7 @@ def compute_loss(
 ) -> float:
     eps: float = 1e-15
     predictions_clipped: NDArray[np.float64] = np.clip(predictions, eps, 1 - eps)
-    loss = np.mean(
+    loss = -np.mean(
         binary_labels * np.log(predictions_clipped)
         + (1 - binary_labels) * np.log(1 - predictions_clipped)
     )
@@ -62,7 +62,7 @@ def training(
     classes: pd.Index,
     learning_rate: float = 0.01,
     max_iter: int = 10000,
-    tolerance: float = 1e-6,
+    tolerance: float = 1e-4,
     patience: int = 100,
 ) -> tuple[dict[Any, NDArray[np.float64]], dict[Any, list[float]]]:
 
@@ -87,7 +87,7 @@ def training(
             loss: float = compute_loss(binary_labels, predictions)
             history.append(loss)
             if best_loss - loss > tolerance:
-                loss = best_loss
+                best_loss = loss
                 patience_counter = 0
             else:
                 patience_counter += 1
@@ -100,8 +100,6 @@ def training(
             gradient: NDArray[np.float64] = (
                 np.matmul(features_biased.T, predictions - binary_labels) / nb_datum
             )
-            if i == 1:
-                print(gradient)
             weights -= gradient * learning_rate
         else:
             logging.info("Stopped training after max number of iterations")
@@ -134,14 +132,11 @@ def main() -> None:
     features, labels, label_code = load_csv_to_numpy(Path("data/dataset_train.csv"))
 
     normalized_features: NDArray[np.float64] = normalize_features(features)
-    print(normalized_features)
 
     all_weights: dict[Any, NDArray[np.float64]]
     all_histories: dict[Any, list[float]]
     logging.info("Starting training")
-    all_weights, all_histories = training(
-        normalized_features, labels, label_code, learning_rate=0.01
-    )
+    all_weights, all_histories = training(normalized_features, labels, label_code)
 
     plot_training_loss(all_histories)
 
