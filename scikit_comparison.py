@@ -31,13 +31,17 @@ def main():
     train_df = train_df.drop(
         labels=["Index", "First Name", "Last Name", "Birthday", "Best Hand"], axis=1
     )
-    raw_labels = train_df["Hogwarts House"].factorize()
+    train_features = train_df.drop(["Hogwarts House"], axis=1)
+    train_targets = train_df["Hogwarts House"]
+
+    train_features_clean = train_features.apply(pd.to_numeric, errors="coerce")
+    train_clean = pd.concat([train_features_clean, train_targets], axis=1).dropna()
+
+    raw_labels = train_clean["Hogwarts House"].factorize()
     y_train: NDArray[np.integer] = raw_labels[0]
-    train_df = train_df.drop(labels=["Hogwarts House"], axis=1)
-    train_clean = cast(
-        pd.DataFrame, train_df.apply(pd.to_numeric, errors="coerce").dropna()
-    )
-    X_train: NDArray[np.float64] = train_clean.values
+    X_train: NDArray[np.float64] = train_clean.drop(
+        labels=["Hogwarts House"], axis=1
+    ).values
 
     test_df = test_df.drop(
         labels=[
