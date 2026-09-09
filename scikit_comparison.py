@@ -39,6 +39,7 @@ def main():
 
     raw_labels = train_clean["Hogwarts House"].factorize()
     y_train: NDArray[np.integer] = raw_labels[0]
+    label_code: pd.Index = raw_labels[1]
     X_train: NDArray[np.float64] = train_clean.drop(
         labels=["Hogwarts House"], axis=1
     ).values
@@ -68,6 +69,8 @@ def main():
     sk_model.fit(X_train_scaled, y_train)
 
     sk_predictions = sk_model.predict(X_test_scaled)
+    sk_predictions = label_code[sk_predictions]
+    print(sk_predictions)
 
     logging.info("Loading predictions from houses.csv...")
     custom_df = pd.read_csv(houses_path)
@@ -76,6 +79,7 @@ def main():
             "houses.csv does not contain the expected 'Hogwarts House' column."
         )
     custom_predictions = custom_df["Hogwarts House"].values
+    print(custom_predictions)
 
     if len(custom_predictions) != len(sk_predictions):
         logging.warning(
