@@ -17,13 +17,16 @@ A robust, fully vectorized **One-vs-Rest (OvR) Logistic Regression** implementat
 
 ## 📁 Project Structure
 
-```text
-├── dataset_train.csv          # Training dataset
-├── dataset_test.csv           # Testing dataset
+├── data/
+│   ├── dataset_train.csv      # Training dataset
+│   └── dataset_test.csv       # Testing dataset
+├── utils.py                   # Shared data loading and validation logic
 ├── logreg_train.py            # Training script (serializes model weights)
 ├── logreg_predict.py          # Prediction script (generates houses.csv)
-├── compare_with_sklearn.py    # Benchmarking script against scikit-learn
-└── ovr_logistic_model.joblib  # Serialized model artifact (generated)
+├── scikit_comparison.py       # Benchmarking script against scikit-learn
+├── requirements.txt           # Project dependencies
+└── .gitignore
+
 ```
 
 ---
@@ -72,7 +75,7 @@ Index,Hogwarts House
 To verify the mathematical accuracy and see how closely your custom NumPy matrix math matches `scikit-learn`, run the evaluation benchmark:
 
 ```bash
-python compare_with_sklearn.py
+python scikit_comparison.py
 ```
 
 *This outputs an explicit agreement percentage rate and generates a difference report (`model_comparison_diff.csv`) for auditing.*
