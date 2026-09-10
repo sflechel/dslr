@@ -5,19 +5,15 @@ import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
 from typing import Any
-from typing import cast
 import sys
+
+from utils import load_predict_dataset, normalize_features, sigmoid
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     datefmt="%H:%M:%S",
 )
-
-
-def sigmoid(z: NDArray[np.float64]) -> NDArray[np.float64]:
-    z_clipped: NDArray[np.float64] = np.clip(z, -500, 500)
-    return 1.0 / (1.0 + np.exp(-z_clipped))
 
 
 def predict(
@@ -39,49 +35,6 @@ def predict(
     predicted_classes: pd.Index = label_code[np.argmax(probabilities, axis=1)]
 
     return predicted_classes
-
-
-def normalize_features(features: NDArray[np.float64]) -> NDArray[np.float64]:
-    mean: NDArray[np.float64] = np.mean(features, axis=0)
-    std: NDArray[np.float64] = np.std(features, axis=0)
-
-    std[std == 0.0] = 1e-15
-
-    return (features - mean) / std
-
-
-def load_csv_to_numpy(
-    file_path: Path,
-) -> NDArray[np.float64]:
-    try:
-        data: pd.DataFrame = pd.read_csv(file_path)
-    except Exception as _:
-        raise ValueError(f"Failed to parse csv file at {file_path}")
-
-    try:
-        data = data.drop(
-            labels=[
-                "Hogwarts House",
-                "First Name",
-                "Last Name",
-                "Birthday",
-                "Best Hand",
-            ],
-            axis=1,
-        )
-    except KeyError as _:
-        raise KeyError("Missing expected columns")
-
-    data = cast(pd.DataFrame, data.apply(pd.to_numeric, errors="coerce").dropna())
-    if data.empty:
-        raise ValueError("Dataset contains no values after cleaning")
-
-    try:
-        features: NDArray[np.float64] = data.drop(labels=["Index"], axis=1).values
-    except KeyError as _:
-        raise KeyError("Missing expected columns")
-
-    return features
 
 
 def load_model_parameters(
@@ -128,7 +81,7 @@ def main() -> None:
     weights, label_code = load_model_parameters(weights_path)
     logging.info(f"Weights loaded successfully, using classes: {label_code.tolist()}")
 
-    features: NDArray[np.float64] = load_csv_to_numpy(dataset_path)
+    features: NDArray[np.float64] = load_predict_dataset(dataset_path)
     indices: NDArray[np.int16] = np.arange(len(features), dtype=np.int16)
     logging.info("Dataset loaded successfully")
 

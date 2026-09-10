@@ -9,6 +9,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import StandardScaler
 
+from utils import load_predict_dataset, load_test_dataset
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -17,6 +19,7 @@ logging.basicConfig(
 
 
 def main():
+
     houses_path = Path("houses.csv")
     if not houses_path.exists():
         raise FileNotFoundError("houses.csv not found. Run logreg_predict.py first")
@@ -26,41 +29,11 @@ def main():
     if not train_path.exists() or not test_path.exists():
         raise FileNotFoundError("Training or testing dataset could not be found")
 
-    logging.info("Loading training and testing data...")
-    train_df = pd.read_csv(train_path)
-    test_df = pd.read_csv(test_path)
-
-    train_df = train_df.drop(
-        labels=["Index", "First Name", "Last Name", "Birthday", "Best Hand"], axis=1
-    )
-    train_features = train_df.drop(["Hogwarts House"], axis=1)
-    train_targets = train_df["Hogwarts House"]
-
-    train_features_clean = train_features.apply(pd.to_numeric, errors="coerce")
-    train_clean = pd.concat([train_features_clean, train_targets], axis=1).dropna()
-
-    raw_labels = train_clean["Hogwarts House"].factorize()
-    y_train: NDArray[np.integer] = raw_labels[0]
-    label_code: pd.Index = raw_labels[1]
-    X_train: NDArray[np.float64] = train_clean.drop(
-        labels=["Hogwarts House"], axis=1
-    ).values
-
-    test_df = test_df.drop(
-        labels=[
-            "Hogwarts House",
-            "First Name",
-            "Last Name",
-            "Birthday",
-            "Best Hand",
-            "Index",
-        ],
-        axis=1,
-    )
-    test_clean = cast(
-        pd.DataFrame, test_df.apply(pd.to_numeric, errors="coerce").dropna()
-    )
-    X_test: NDArray[np.float64] = test_clean.values
+    y_train: NDArray[np.integer]
+    label_code: pd.Index
+    X_train: NDArray[np.float64]
+    X_train, y_train, label_code = load_test_dataset(train_path)
+    X_test: NDArray[np.float64] = load_predict_dataset(test_path)
 
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)

@@ -2,3 +2,4 @@
 data
 logreg_weights.joblib
 houses.csv
+__pycache__
