@@ -2,7 +2,6 @@ from pathlib import Path
 import logging
 import numpy as np
 import pandas as pd
-from typing import cast
 from numpy.typing import NDArray
 
 from sklearn.linear_model import LogisticRegression
@@ -19,7 +18,6 @@ logging.basicConfig(
 
 
 def main():
-
     houses_path = Path("houses.csv")
     if not houses_path.exists():
         raise FileNotFoundError("houses.csv not found. Run logreg_predict.py first")
@@ -39,7 +37,7 @@ def main():
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.fit_transform(X_test)
 
-    logging.info("Training scikit-learn logistic regression")
+    logging.info("Training scikit-learn OvR logistic regression")
     sk_model = OneVsRestClassifier(LogisticRegression()).fit(X_train_scaled, y_train)
     sk_model.fit(X_train_scaled, y_train)
 
@@ -52,8 +50,8 @@ def main():
 
     if len(custom_predictions) != len(sk_predictions):
         logging.warning(
-            f"Length mismatch! houses.csv has {len(custom_predictions)} rows, "
-            f"while scikit-learn evaluated {len(sk_predictions)} rows. Check your row-dropping logic."
+            f"Length mismatch, houses.csv has {len(custom_predictions)} rows, "
+            f"scikit-learn has {len(sk_predictions)} rows"
         )
         exit(1)
 
